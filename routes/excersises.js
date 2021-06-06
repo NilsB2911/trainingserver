@@ -11,9 +11,14 @@ var connection = mysql.createConnection({
 
 let resultString = "";
 
-/* GET users listing. */
-// localhost:3000/cars/
-router.get('/get/:userId', function (req, res, next) {
+var cors = require('cors')
+var corsSettings = {
+    origin: 'http://localhost:3000',
+    optionsSuccessStatus: 200
+}
+
+
+router.get('/get/:userId', cors(corsSettings), function (req, res, next) {
 
     let id = req.params.userId;
     let query = "SELECT * FROM `trainingtest` WHERE userId = " + addQuotation(id);
@@ -23,11 +28,12 @@ router.get('/get/:userId', function (req, res, next) {
         if (err) throw err;
 
         let resultAsJSON = getJSON(result);
+        console.log(resultAsJSON);
         res.json(resultAsJSON);
     })
 });
 
-router.get("/get/:userId/:workoutName", function (req, res, next) {
+router.get("/get/:userId/:workoutName", cors(corsSettings), function (req, res, next) {
     let id = req.params.userId;
     let workoutName = req.params.workoutName;
 
@@ -40,7 +46,8 @@ router.get("/get/:userId/:workoutName", function (req, res, next) {
     })
 })
 
-router.get("/submit/:name/:json/:duration/:userId", function (req, res, next) {
+router.post("/submit/:name/:json/:duration/:userId", cors(corsSettings), function (req, res, next) {
+
     let name = req.params.name;
     let json = req.params.json;
     let duration = req.params.duration;
@@ -51,9 +58,8 @@ router.get("/submit/:name/:json/:duration/:userId", function (req, res, next) {
     let query = "INSERT INTO `trainingtest` (`name`, `json`, `time`, `userId`) VALUES (" + addQuotation(name) + "," + addQuotation(json) + "," + duration + "," + addQuotation(userId) + ")";
     connection.query(query, (err, res) => {
         if (err) throw err;
-        response = res;
+        console.log(res);
     })
-    res.send("query  " + query + "resulted in " + response);
 });
 
 
