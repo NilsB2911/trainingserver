@@ -46,19 +46,18 @@ router.get("/get/:userId/:workoutName", cors(corsSettings), function (req, res, 
     })
 })
 
-router.post("/submit/:name/:json/:duration/:userId", cors(corsSettings), function (req, res, next) {
+router.options("/submit", cors(corsSettings));
+router.post("/submit", cors(corsSettings), function (req, res, next) {
 
-    let name = req.params.name;
-    let json = req.params.json;
-    let duration = req.params.duration;
-    let userId = req.params.userId;
-
-    let response = undefined;
+    let name = req.body.name;
+    let json = req.body.json;
+    let duration = req.body.duration;
+    let userId = req.body.userId;
 
     let query = "INSERT INTO `trainingtest` (`name`, `json`, `time`, `userId`) VALUES (" + addQuotation(name) + "," + addQuotation(json) + "," + duration + "," + addQuotation(userId) + ")";
-    connection.query(query, (err, res) => {
+    connection.query(query, (err, result) => {
         if (err) throw err;
-        console.log(res);
+        res.send(true);
     })
 });
 

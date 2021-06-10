@@ -18,8 +18,8 @@ var corsSettings = {
     optionsSuccessStatus: 200
 }
 //returns true, if uuid is valid
-router.get("/checkIfUidExists", cors(corsSettings), function (req, res, next) {
-    let queryString = "SELECT uid FROM `user` WHERE uid = " + addQuotation(req.body.uid);
+router.get("/checkIfUidExists/:uid", cors(corsSettings), function (req, res, next) {
+    let queryString = "SELECT uid FROM `user` WHERE uid = " + addQuotation(req.params.uid);
     connection.query(queryString, (err, result) => {
         if (err) throw err;
         if (result.length === 0) {
@@ -30,18 +30,19 @@ router.get("/checkIfUidExists", cors(corsSettings), function (req, res, next) {
     })
 })
 
-router.post("/register/:email/:name/:pw", cors(corsSettings), function (req, res, next) {
-    console.log(req);
+router.options("/register", cors(corsSettings));
+router.post("/register", cors(corsSettings), function (req, res, next) {
+    console.log(req.body);
 
-    let email = req.params.email;
+    let email = req.body.email;
     let uid = uuidv4();
-    let name = req.params.name;
+    let name = req.body.name;
 
     let queryString = "SELECT email FROM `user` WHERE email = " + addQuotation(req.body.email);
     connection.query(queryString, (err, resultOuter) => {
         if (err) throw err;
         if (resultOuter.length === 0) {
-            bcrypt.hash(req.params.pw, 10, function (err, hash) {
+            bcrypt.hash(req.body.pw, 10, function (err, hash) {
                 if (err) throw err;
                 let queryString = "INSERT INTO `user`(`email`, `pw`, `uid`, `name`) VALUES (" + addQuotation(email) + ", " + addQuotation(hash) + ", " + addQuotation(uid) + ", " + addQuotation(name) + ")";
                 connection.query(queryString, (err, result) => {
@@ -55,7 +56,7 @@ router.post("/register/:email/:name/:pw", cors(corsSettings), function (req, res
                 })
             });
         } else {
-            res.send(false);
+            res.send(null);
         }
     })
 });
@@ -78,7 +79,7 @@ router.get("/login/:email/:pw", cors(corsSettings), function (req, res, next) {
                 })
             } else {
                 console.log("false")
-                res.send(false);
+                res.send(null);
             }
 
         })
