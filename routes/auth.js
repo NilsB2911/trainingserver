@@ -14,9 +14,14 @@ var connection = mysql.createConnection({
 
 var cors = require('cors')
 var corsSettings = {
+    credentials: true,
     origin: 'http://localhost:3000',
     optionsSuccessStatus: 200
 }
+
+var jwt = require('jsonwebtoken')
+const config = require('../config/config.json')
+
 //returns true, if uuid is valid
 router.get("/checkIfUidExists/:uid", cors(corsSettings), function (req, res, next) {
     let queryString = "SELECT uid FROM `user` WHERE uid = " + addQuotation(req.params.uid);
@@ -47,11 +52,11 @@ router.post("/register", cors(corsSettings), function (req, res, next) {
                 let queryString = "INSERT INTO `user`(`email`, `pw`, `uid`, `name`) VALUES (" + addQuotation(email) + ", " + addQuotation(hash) + ", " + addQuotation(uid) + ", " + addQuotation(name) + ")";
                 connection.query(queryString, (err, result) => {
                     if (err) throw err;
-                    console.log(email, uid, name);
+                    let token = jwt.sign({email: email, uid: uid, name: name}, config.secretKey)
+                    console.log(token)
+                    res.cookie('jwt', token, {httpOnly: true})
                     res.json({
-                        "email": email,
-                        "uid": uid,
-                        "name": name
+                        "token": token
                     })
                 })
             });
@@ -61,9 +66,10 @@ router.post("/register", cors(corsSettings), function (req, res, next) {
     })
 });
 
-router.get("/login/:email/:pw", cors(corsSettings), function (req, res, next) {
-    let email = req.params.email;
-    let pw = req.params.pw;
+router.options("/login", cors(corsSettings));
+router.post("/login", cors(corsSettings), function (req, res, next) {
+    let email = req.body.email;
+    let pw = req.body.pw;
 
     let getHashedPw = "SELECT pw, uid, name, email FROM `user` WHERE email = " + addQuotation(email);
     connection.query(getHashedPw, (err, result) => {
@@ -71,11 +77,11 @@ router.get("/login/:email/:pw", cors(corsSettings), function (req, res, next) {
         bcrypt.compare(pw, hashedCorrect, function (err, bcres) {
             if (err) throw err;
             if (bcres) {
-                console.log("correct")
-                res.json({
-                    "email": result[0].email,
-                    "uid": result[0].uid,
-                    "name": result[0].name
+                let token = jwt.sign({email: result[0].email, uid: result[0].uid, name: result[0].name}, config.secretKey)
+                console.log(token)
+                res.cookie('jwt', token, {httpOnly: true})
+                res.status(201).json({
+                    "token": token
                 })
             } else {
                 console.log("false")

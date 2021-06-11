@@ -6,6 +6,7 @@ var indexRouter = require('./routes/index');
 var trainingRouter = require('./routes/excersises')
 var usersRouter = require('./routes/auth')
 var bodyParser = require("body-parser");
+var cookieParser = require('cookie-parser')
 
 var app = express();
 
@@ -19,6 +20,7 @@ app.use(bodyParser.urlencoded({
   extended: true
 }));
 app.use(bodyParser.json())
+app.use(cookieParser());
 
 app.use('/', indexRouter);
 app.use('/training', trainingRouter);

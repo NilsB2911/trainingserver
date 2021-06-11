@@ -9,8 +9,6 @@ var connection = mysql.createConnection({
     database: "training"
 })
 
-let resultString = "";
-
 var cors = require('cors')
 var corsSettings = {
     origin: 'http://localhost:3000',
@@ -22,13 +20,11 @@ router.get('/get/:userId', cors(corsSettings), function (req, res, next) {
 
     let id = req.params.userId;
     let query = "SELECT * FROM `trainingtest` WHERE userId = " + addQuotation(id);
-    console.log(query);
 
     connection.query(query, (err, result) => {
         if (err) throw err;
 
         let resultAsJSON = getJSON(result);
-        console.log(resultAsJSON);
         res.json(resultAsJSON);
     })
 });
