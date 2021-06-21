@@ -56,7 +56,9 @@ router.post("/register", cors(corsSettings), function (req, res, next) {
                     console.log(token)
                     res.cookie('jwt', token, {httpOnly: true})
                     res.json({
-                        "token": token
+                        uid: uid,
+                        email: email,
+                        name: name
                     })
                 })
             });
@@ -73,23 +75,64 @@ router.post("/login", cors(corsSettings), function (req, res, next) {
 
     let getHashedPw = "SELECT pw, uid, name, email FROM `user` WHERE email = " + addQuotation(email);
     connection.query(getHashedPw, (err, result) => {
-        let hashedCorrect = result[0].pw;
-        bcrypt.compare(pw, hashedCorrect, function (err, bcres) {
-            if (err) throw err;
-            if (bcres) {
-                let token = jwt.sign({email: result[0].email, uid: result[0].uid, name: result[0].name}, config.secretKey)
-                console.log(token)
-                res.cookie('jwt', token, {httpOnly: true})
-                res.status(201).json({
-                    "token": token
-                })
-            } else {
-                console.log("false")
-                res.send(null);
-            }
+        if (result.length > 0) {
+            let hashedCorrect = result[0].pw;
+            bcrypt.compare(pw, hashedCorrect, function (err, bcres) {
+                if (err) throw err;
+                if (bcres) {
+                    let token = jwt.sign({
+                        email: result[0].email,
+                        uid: result[0].uid,
+                        name: result[0].name
+                    }, config.secretKey)
+                    console.log(token)
+                    res.cookie('jwt', token, {httpOnly: true})
+                    res.status(201).json({
+                        uid: result[0].uid,
+                        email: result[0].email,
+                        name: result[0].name
+                    });
+                } else {
+                    console.log("false")
+                    res.send(null);
+                }
 
-        })
+            })
+        } else {
+            res.send(null);
+        }
     })
+})
+
+router.options("/tokenLogin", cors(corsSettings));
+router.post("/tokenLogin", cors(corsSettings), function (req, res, next) {
+    let jwToken = req.cookies.jwt;
+    if (jwToken) {
+        jwt.verify(jwToken, config.secretKey, (err, decoded) => {
+            if (err) throw err;
+            res.json({
+                uid: decoded.uid,
+                email: decoded.email,
+                name: decoded.name
+            });
+        })
+    } else {
+        res.json({
+            uid: null,
+            name: null,
+            email: null
+        })
+    }
+})
+
+router.options("/logout", cors(corsSettings))
+router.post("/logout", cors(corsSettings), function (req, res, next) {
+    res.clearCookie("jwt");
+    res.json({
+        uid: null,
+        email: null,
+        name: null
+    });
 })
 
 function getJSON(jsonObject) {
