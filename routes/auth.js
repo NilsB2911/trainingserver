@@ -22,7 +22,10 @@ var corsSettings = {
 var jwt = require('jsonwebtoken')
 const config = require('../config/config.json')
 
-//returns true, if uuid is valid
+/*
+    checks id uuid exists
+    returns true/false corresponding
+ */
 router.get("/checkIfUidExists/:uid", cors(corsSettings), function (req, res, next) {
     let queryString = "SELECT uid FROM `user` WHERE uid = " + addQuotation(req.params.uid);
     connection.query(queryString, (err, result) => {
@@ -35,6 +38,10 @@ router.get("/checkIfUidExists/:uid", cors(corsSettings), function (req, res, nex
     })
 })
 
+/*
+    registers new user
+    returns user object and jwt cookie
+ */
 router.options("/register", cors(corsSettings));
 router.post("/register", cors(corsSettings), function (req, res, next) {
     console.log(req.body);
@@ -43,13 +50,14 @@ router.post("/register", cors(corsSettings), function (req, res, next) {
     let uid = uuidv4();
     let name = req.body.name;
 
-    let queryString = "SELECT email FROM `user` WHERE email = " + addQuotation(req.body.email);
+    let queryString = `SELECT \`email\` FROM \`user\` WHERE \`email\` = '${email}'`;
     connection.query(queryString, (err, resultOuter) => {
         if (err) throw err;
         if (resultOuter.length === 0) {
             bcrypt.hash(req.body.pw, 10, function (err, hash) {
                 if (err) throw err;
-                let queryString = "INSERT INTO `user`(`email`, `pw`, `uid`, `name`) VALUES (" + addQuotation(email) + ", " + addQuotation(hash) + ", " + addQuotation(uid) + ", " + addQuotation(name) + ")";
+                + addQuotation(email) + ", " + addQuotation(hash) + ", " + addQuotation(uid) + ", " + addQuotation(name) + ")";
+                let queryString = `INSERT INTO \`user\`(\`email\`, \`pw\`, \`uid\`, \`name\`) VALUES ('${email}', '${hash}', '${uid}', '${name}')`
                 connection.query(queryString, (err, result) => {
                     if (err) throw err;
                     let token = jwt.sign({email: email, uid: uid, name: name}, config.secretKey)
@@ -68,12 +76,16 @@ router.post("/register", cors(corsSettings), function (req, res, next) {
     })
 });
 
+/*
+    logs user in
+    returns user object and jwt cookie
+ */
 router.options("/login", cors(corsSettings));
 router.post("/login", cors(corsSettings), function (req, res, next) {
     let email = req.body.email;
     let pw = req.body.pw;
 
-    let getHashedPw = "SELECT pw, uid, name, email FROM `user` WHERE email = " + addQuotation(email);
+    let getHashedPw = `SELECT \`pw\`, \`uid\`, \`name\`, \`email\` FROM \`user\` WHERE \`email\` = '${email}'`;
     connection.query(getHashedPw, (err, result) => {
         if (result.length > 0) {
             let hashedCorrect = result[0].pw;
@@ -104,6 +116,10 @@ router.post("/login", cors(corsSettings), function (req, res, next) {
     })
 })
 
+/*
+    logs user in based on jwt token
+    returns user object
+ */
 router.options("/tokenLogin", cors(corsSettings));
 router.post("/tokenLogin", cors(corsSettings), function (req, res, next) {
     let jwToken = req.cookies.jwt;
@@ -125,6 +141,10 @@ router.post("/tokenLogin", cors(corsSettings), function (req, res, next) {
     }
 })
 
+/*
+    logs user out
+    returns jwt cookie clear
+ */
 router.options("/logout", cors(corsSettings))
 router.post("/logout", cors(corsSettings), function (req, res, next) {
     res.clearCookie("jwt");
@@ -134,11 +154,6 @@ router.post("/logout", cors(corsSettings), function (req, res, next) {
         name: null
     });
 })
-
-function getJSON(jsonObject) {
-    let jsonReturn = JSON.stringify(jsonObject);
-    return JSON.parse(jsonReturn);
-}
 
 function addQuotation(str) {
     return "'" + str + "'";

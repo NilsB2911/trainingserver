@@ -7,6 +7,7 @@ var trainingRouter = require('./routes/excersises')
 var usersRouter = require('./routes/auth')
 var bodyParser = require("body-parser");
 var cookieParser = require('cookie-parser')
+const cors = require("cors");
 
 var app = express();
 

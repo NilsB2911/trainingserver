@@ -15,11 +15,16 @@ var corsSettings = {
     optionsSuccessStatus: 200
 }
 
+const {v4: uuidv4} = require('uuid');
 
+/*
+    get all workouts from a specific user
+    returns all workouts
+ */
 router.get('/get/:userId', cors(corsSettings), function (req, res, next) {
 
     let id = req.params.userId;
-    let query = "SELECT * FROM `trainingtest` WHERE userId = " + addQuotation(id);
+    let query = `SELECT * FROM \`trainingtest\` WHERE \`userId\` = '${id}'`
 
     connection.query(query, (err, result) => {
         if (err) throw err;
@@ -29,11 +34,16 @@ router.get('/get/:userId', cors(corsSettings), function (req, res, next) {
     })
 });
 
-router.get("/get/:userId/:workoutName", cors(corsSettings), function (req, res, next) {
-    let id = req.params.userId;
-    let workoutName = req.params.workoutName;
+/*
+    get workout to populate edit page
+    returns specific workout
+ */
+router.get("/edit/:tid/:uid", cors(corsSettings), function (req, res, next) {
+    let tid = req.params.tid;
+    let uid = req.params.uid;
 
-    let query = "SELECT * FROM `trainingtest` WHERE userId = " + addQuotation(id) + " AND name = " + addQuotation(workoutName);
+    let query = `SELECT * FROM \`trainingtest\` WHERE  \`tid\` = '${tid}' AND \`userId\` = '${uid}'`
+    console.log(query);
     connection.query(query, (err, result) => {
         if (err) throw err;
 
@@ -42,6 +52,30 @@ router.get("/get/:userId/:workoutName", cors(corsSettings), function (req, res, 
     })
 })
 
+/*
+    updates existing workout
+    returns true if updated successfully
+ */
+router.options("/update", cors(corsSettings))
+router.put("/update", cors(corsSettings), function (req, res, next) {
+
+    let name = req.body.name;
+    let json = req.body.json;
+    let duration = req.body.duration;
+    let uid = req.body.userId;
+    let tid = req.body.tid;
+
+    let query = `UPDATE \`trainingtest\` SET \`name\`='${name}',\`json\`='${json}', \`time\`='${duration}',\`userId\`='${uid}',\`tid\`='${tid}' WHERE \`tid\` = '${tid}' AND \`userId\` = '${uid}'`
+    connection.query(query, (err, result) => {
+        if (err) throw res.send(false);
+        res.send(true);
+    })
+})
+
+/*
+    creates new workout
+    returns true if created successfully
+ */
 router.options("/submit", cors(corsSettings));
 router.post("/submit", cors(corsSettings), function (req, res, next) {
 
@@ -49,22 +83,35 @@ router.post("/submit", cors(corsSettings), function (req, res, next) {
     let json = req.body.json;
     let duration = req.body.duration;
     let userId = req.body.userId;
+    let tid = uuidv4();
 
-    let query = "INSERT INTO `trainingtest` (`name`, `json`, `time`, `userId`) VALUES (" + addQuotation(name) + "," + addQuotation(json) + "," + duration + "," + addQuotation(userId) + ")";
+    let query = `INSERT INTO \`trainingtest\` (\`name\`, \`json\`, \`time\`, \`userId\`, \`tid\`) VALUES ('${name}', '${json}', '${duration}', '${userId}', '${tid}')`;
     connection.query(query, (err, result) => {
-        if (err) throw err;
+        if (err) throw res.send(false);
         res.send(true);
     })
 });
 
+/*
+    deletes existing workout
+    returns all remaining workouts
+ */
+router.options("/deleteWorkout", cors());
+router.delete("/deleteWorkout", cors(corsSettings), function (req, res, next) {
+    let query = `DELETE FROM \`trainingtest\` WHERE \`tid\` = '${req.body.tid}' AND \`userId\` = '${req.body.uid}'`
+    connection.query(query, (err, resultIrrelevant) => {
+        if (err) throw err;
+        let responseQuery = `SELECT * FROM \`trainingtest\` WHERE \`userId\` = '${req.body.uid}'`
+        connection.query(responseQuery, (err, resultRemainingWos) => {
+            if (err) throw err;
+            res.send(resultRemainingWos);
+        })
+    })
+})
 
 function getJSON(jsonObject) {
     let jsonReturn = JSON.stringify(jsonObject);
     return JSON.parse(jsonReturn);
-}
-
-function addQuotation(str) {
-    return "'" + str + "'";
 }
 
 module.exports = router;
