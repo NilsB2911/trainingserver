@@ -58,7 +58,6 @@ router.post("/register", cors(corsSettings), function (req, res, next) {
         if (resultOuter.length === 0) {
             bcrypt.hash(req.body.pw, 10, function (err, hash) {
                 if (err) throw err;
-                + addQuotation(email) + ", " + addQuotation(hash) + ", " + addQuotation(uid) + ", " + addQuotation(name) + ")";
                 let queryString = `INSERT INTO \`user\`(\`email\`, \`pw\`, \`uid\`, \`name\`) VALUES ('${email}', '${hash}', '${uid}', '${name}')`
                 connection.query(queryString, (err, result) => {
                     if (err) throw err;

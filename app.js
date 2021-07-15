@@ -5,6 +5,8 @@ var path = require('path');
 var indexRouter = require('./routes/index');
 var trainingRouter = require('./routes/excersises')
 var usersRouter = require('./routes/auth')
+var roomsRouter = require('./routes/rooms')
+
 var bodyParser = require("body-parser");
 var cookieParser = require('cookie-parser')
 const cors = require("cors");
@@ -26,6 +28,7 @@ app.use(cookieParser());
 app.use('/', indexRouter);
 app.use('/training', trainingRouter);
 app.use('/user', usersRouter);
+app.use('/rooms', roomsRouter)
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
