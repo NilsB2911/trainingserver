@@ -5,6 +5,8 @@ const io = require("socket.io")(http, {
 });
 const port = 3002
 
+let workoutToDo;
+let workoutStep = 0;
 
 sockets.get('/', (req, res) => {
     res.json({
@@ -13,9 +15,24 @@ sockets.get('/', (req, res) => {
     });
 });
 
-io.on("connection", function(socket) {
-    socket.on("playing", function(playState) {
-       io.emit("newPlaying", playState)
+io.on("connection", function (socket) {
+    socket.join("lol")
+    socket.emit("newWorkoutSelected", workoutToDo, () => {
+        socket.emit("newCurrentStep", workoutStep)
+    })
+
+    //TODO submit not working
+    socket.on("currentStepChanged", function (step) {
+        workoutStep = step;
+        socket.emit("newCurrentStep", workoutStep)
+    })
+
+    socket.on("workoutSelected", function (workout) {
+        workoutToDo = workout;
+        socket.emit("newWorkoutSelected", workoutToDo)
+    })
+    socket.on("playing", function (playState) {
+        io.to("lol").emit("newPlaying", playState)
     });
 });
 
