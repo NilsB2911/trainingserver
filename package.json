@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "nodemon": "nodemon ./bin/www"
+    "nodemon": "nodemon ./bin/www",
+    "sockets": "nodemon ./routes/sockets.js"
   },
   "dependencies": {
     "bcrypt": "^5.0.1",
@@ -21,6 +22,7 @@
     "morgan": "~1.9.1",
     "mysql": "^2.18.1",
     "nodemon": "^2.0.7",
+    "socket.io": "^4.1.3",
     "uuid": "^8.3.2"
   }
 }

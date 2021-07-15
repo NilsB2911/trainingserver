@@ -9,7 +9,6 @@ var roomsRouter = require('./routes/rooms')
 
 var bodyParser = require("body-parser");
 var cookieParser = require('cookie-parser')
-const cors = require("cors");
 
 var app = express();
 

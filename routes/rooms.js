@@ -64,7 +64,7 @@ router.delete("/clearSession", cors(corsSettings), function (req, res) {
         if (err) {
             res.status(500).send("nok");
         }
-        console.log(result);
+        //console.log(result);
         res.status(200).send("ok");
     })
 })
