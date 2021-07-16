@@ -5,8 +5,8 @@ const io = require("socket.io")(http, {
 });
 const port = 3002
 
-let workoutToDo;
-let workoutStep = 0;
+var workoutToDo;
+var workoutStep = 0;
 
 sockets.get('/', (req, res) => {
     res.json({
@@ -16,23 +16,29 @@ sockets.get('/', (req, res) => {
 });
 
 io.on("connection", function (socket) {
-    socket.join("lol")
-    socket.emit("newWorkoutSelected", workoutToDo, () => {
-        socket.emit("newCurrentStep", workoutStep)
+    var publicRoomId;
+    socket.on("joinRoom", (roomId) => {
+        socket.join(roomId);
+        publicRoomId = roomId;
+
+        //TODO jeder raum das selbe workout, da public declared
+        console.log(socket.rooms);
+        io.to(publicRoomId).emit("newWorkoutSelected", workoutToDo);
+        io.to(publicRoomId).emit("newCurrentStep", workoutStep);
     })
 
-    //TODO submit not working
     socket.on("currentStepChanged", function (step) {
         workoutStep = step;
-        socket.emit("newCurrentStep", workoutStep)
+        io.to(publicRoomId).emit("newCurrentStep", step)
     })
 
     socket.on("workoutSelected", function (workout) {
         workoutToDo = workout;
-        socket.emit("newWorkoutSelected", workoutToDo)
+        io.to(publicRoomId).emit("newWorkoutSelected", workoutToDo)
     })
+
     socket.on("playing", function (playState) {
-        io.to("lol").emit("newPlaying", playState)
+        io.to(publicRoomId).emit("newPlaying", playState)
     });
 });
 
