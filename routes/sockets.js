@@ -4,37 +4,32 @@ const io = require("socket.io")(http, {
     cors: {}
 });
 const port = 3002
+const fetch = require('node-fetch');
 
-var workoutToDo;
-var workoutStep = 0;
-
-sockets.get('/', (req, res) => {
-    res.json({
-        hallo: "hallo",
-        tschuess: "tschüss"
-    });
-});
+//TODO dynamische methode zum wechseln der steps
 
 io.on("connection", function (socket) {
     var publicRoomId;
-    socket.on("joinRoom", (roomId) => {
+    socket.on("joinRoom", async (roomId) => {
         socket.join(roomId);
         publicRoomId = roomId;
+        console.log("JOINED " + socket.id)
 
-        //TODO jeder raum das selbe workout, da public declared
-        console.log(socket.rooms);
-        io.to(publicRoomId).emit("newWorkoutSelected", workoutToDo);
-        io.to(publicRoomId).emit("newCurrentStep", workoutStep);
+        await fetch(`http://localhost:3001/rooms/getCommonWorkout/${publicRoomId}`, {
+            method: "get",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: "include"
+        }).then(res => res.json()).then(finWo => {
+            console.log(finWo)
+            io.to(publicRoomId).emit("newWorkoutSelected", finWo);
+            //io.to(publicRoomId).emit("newCurrentStep", workoutStep);
+        })
     })
 
     socket.on("currentStepChanged", function (step) {
-        workoutStep = step;
         io.to(publicRoomId).emit("newCurrentStep", step)
-    })
-
-    socket.on("workoutSelected", function (workout) {
-        workoutToDo = workout;
-        io.to(publicRoomId).emit("newWorkoutSelected", workoutToDo)
     })
 
     socket.on("playing", function (playState) {

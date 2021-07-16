@@ -23,13 +23,12 @@ var connection = mysql.createConnection({
     creates sessionroom
  */
 router.options("/createRoom", cors(corsSettings));
-router.post('/createRoom/', cors(corsSettings), function (req, res) {
+router.post('/createRoom', cors(corsSettings), function (req, res) {
     let sessionId = uuidV4()
     let trainingId = req.body.trainingId;
     let query = `INSERT INTO \`sessions\`(\`sessionId\`, \`trainingId\`) VALUES ('${sessionId}','${trainingId}')`
     connection.query(query, (err, queryRes) => {
         if (err) throw err;
-        console.log(queryRes);
     })
     res.json(sessionId)
 })
@@ -40,16 +39,15 @@ router.post('/createRoom/', cors(corsSettings), function (req, res) {
  */
 router.options("/getCommonWorkout/:sessionId", cors(corsSettings))
 router.get("/getCommonWorkout/:sessionId", cors(corsSettings), function (req, res) {
-    let query = `SELECT * FROM \`sessions\` WHERE \`sessionId\` = '${req.params.sessionId}'`
+    let sid = req.params.sessionId;
+    let query = `SELECT trainingtest.name, trainingtest.json, trainingtest.time, trainingtest.userId, trainingtest.tid 
+                 FROM sessions INNER JOIN trainingtest ON trainingtest.tid=sessions.trainingId 
+                 WHERE sessionId = '${sid}'`
+
+    console.log(query);
     connection.query(query, (err, result) => {
         if (err) throw err;
-        let tid = getJSON(result[0]);
-        let innerQuery = `SELECT * FROM \`trainingtest\` WHERE \`tid\` = '${tid.trainingId}'`
-        connection.query(innerQuery, (err, innerResult) => {
-            if (err) throw err;
-            let returnValue = getJSON(innerResult[0]);
-            res.json(returnValue);
-        })
+        res.json(result[0])
     })
 })
 
@@ -69,9 +67,5 @@ router.delete("/clearSession", cors(corsSettings), function (req, res) {
     })
 })
 
-function getJSON(jsonObject) {
-    let jsonReturn = JSON.stringify(jsonObject);
-    return JSON.parse(jsonReturn);
-}
 
 module.exports = router;
