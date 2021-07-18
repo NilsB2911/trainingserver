@@ -28,9 +28,9 @@ router.post('/createRoom', cors(corsSettings), function (req, res) {
     let trainingId = req.body.trainingId;
     let query = `INSERT INTO \`sessions\`(\`sessionId\`, \`trainingId\`) VALUES ('${sessionId}','${trainingId}')`
     connection.query(query, (err, queryRes) => {
-        if (err) throw err;
+        if (err) throw res.sendStatus(500);
     })
-    res.json(sessionId)
+    res.status(201).json(sessionId)
 })
 
 
@@ -46,8 +46,8 @@ router.get("/getCommonWorkout/:sessionId", cors(corsSettings), function (req, re
 
     console.log(query);
     connection.query(query, (err, result) => {
-        if (err) throw err;
-        res.json(result[0])
+        if (err) throw res.sendStatus(404);
+        res.status(200).json(result[0])
     })
 })
 

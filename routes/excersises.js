@@ -29,10 +29,10 @@ router.get('/get/:userId', cors(corsSettings), function (req, res, next) {
     let query = `SELECT * FROM \`trainingtest\` WHERE \`userId\` = '${id}'`
 
     connection.query(query, (err, result) => {
-        if (err) throw err;
+        if (err) throw res.sendStatus(404);
 
         let resultAsJSON = getJSON(result);
-        res.json(resultAsJSON);
+        res.status(200).json(resultAsJSON);
     })
 });
 
@@ -47,10 +47,10 @@ router.get("/edit/:tid/:uid", cors(corsSettings), function (req, res, next) {
     let query = `SELECT * FROM \`trainingtest\` WHERE  \`tid\` = '${tid}' AND \`userId\` = '${uid}'`
     console.log(query);
     connection.query(query, (err, result) => {
-        if (err) throw err;
+        if (err) throw res.sendStatus(404);
 
         let resultAsJSON = getJSON(result);
-        res.json(resultAsJSON);
+        res.status(200).json(resultAsJSON);
     })
 })
 
@@ -69,8 +69,8 @@ router.put("/update", cors(corsSettings), function (req, res, next) {
 
     let query = `UPDATE \`trainingtest\` SET \`name\`='${name}',\`json\`='${json}', \`time\`='${duration}',\`userId\`='${uid}',\`tid\`='${tid}' WHERE \`tid\` = '${tid}' AND \`userId\` = '${uid}'`
     connection.query(query, (err, result) => {
-        if (err) throw res.send(false);
-        res.send(true);
+        if (err) throw res.sendStatus(404);
+        res.sendStatus(204);
     })
 })
 
@@ -89,8 +89,8 @@ router.post("/submit", cors(corsSettings), function (req, res, next) {
 
     let query = `INSERT INTO \`trainingtest\` (\`name\`, \`json\`, \`time\`, \`userId\`, \`tid\`) VALUES ('${name}', '${json}', '${duration}', '${userId}', '${tid}')`;
     connection.query(query, (err, result) => {
-        if (err) throw res.send(false);
-        res.send(true);
+        if (err) throw res.sendStatus(500);
+        res.sendStatus(201);
     })
 });
 
@@ -105,8 +105,8 @@ router.delete("/deleteWorkout", cors(corsSettings), function (req, res, next) {
         if (err) throw err;
         let responseQuery = `SELECT * FROM \`trainingtest\` WHERE \`userId\` = '${req.body.uid}'`
         connection.query(responseQuery, (err, resultRemainingWos) => {
-            if (err) throw err;
-            res.send(resultRemainingWos);
+            if (err) throw res.sendStatus(409);
+            res.status(204).send(resultRemainingWos);
         })
     })
 })

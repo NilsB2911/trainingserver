@@ -13,7 +13,6 @@ io.on("connection", function (socket) {
     socket.on("joinRoom", async (roomId) => {
         socket.join(roomId);
         publicRoomId = roomId;
-        console.log("JOINED " + socket.id)
 
         await fetch(`http://localhost:3001/rooms/getCommonWorkout/${publicRoomId}`, {
             method: "get",
@@ -21,14 +20,34 @@ io.on("connection", function (socket) {
                 "Content-Type": "application/json",
             },
             credentials: "include"
-        }).then(res => res.json()).then(finWo => {
-            console.log(finWo)
-            io.to(publicRoomId).emit("newWorkoutSelected", finWo);
-            //io.to(publicRoomId).emit("newCurrentStep", workoutStep);
+        }).then(res => {
+            if (res.status === 200) {
+                res.json().then(finWo => {
+                    io.to(publicRoomId).emit("newWorkoutSelected", finWo);
+                })
+            } else if(res.status === 404) {
+                console.log("workout not found")
+            }
         })
     })
+
+    socket.on("joinWithName", (name) => {
+        socket.nickname = name;
+
+        let users = io.sockets.adapter.rooms.get(publicRoomId);
+        let userArray = Array.from(users);
+
+        let allUserNames = [];
+
+        for (let i = 0; i < userArray.length; i++) {
+            allUserNames.push(io.sockets.sockets.get(userArray[i]).nickname);
+        }
+
+        io.to(publicRoomId).emit("newUsernames", allUserNames);
+    })
+
     socket.on("disconnect", (reason) => {
-        console.log(reason);
+
     })
 
     socket.on("currentStepChanged", function (step) {

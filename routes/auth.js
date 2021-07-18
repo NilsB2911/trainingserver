@@ -64,7 +64,7 @@ router.post("/register", cors(corsSettings), function (req, res, next) {
                     let token = jwt.sign({email: email, uid: uid, name: name}, config.secretKey)
                     console.log(token)
                     res.cookie('jwt', token, {httpOnly: true})
-                    res.json({
+                    res.status(200).json({
                         uid: uid,
                         email: email,
                         name: name
@@ -72,7 +72,7 @@ router.post("/register", cors(corsSettings), function (req, res, next) {
                 })
             });
         } else {
-            res.send(null);
+            res.status(401).send(null);
         }
     })
 });
@@ -100,19 +100,19 @@ router.post("/login", cors(corsSettings), function (req, res, next) {
                     }, config.secretKey)
                     console.log(token)
                     res.cookie('jwt', token, {httpOnly: true})
-                    res.status(201).json({
+                    res.status(200).json({
                         uid: result[0].uid,
                         email: result[0].email,
                         name: result[0].name
                     });
                 } else {
                     console.log("false")
-                    res.send(null);
+                    res.status(401).send(null);
                 }
 
             })
         } else {
-            res.send(null);
+            res.status(401).send(null);
         }
     })
 })
@@ -126,15 +126,19 @@ router.post("/tokenLogin", cors(corsSettings), function (req, res, next) {
     let jwToken = req.cookies.jwt;
     if (jwToken) {
         jwt.verify(jwToken, config.secretKey, (err, decoded) => {
-            if (err) throw err;
-            res.json({
+            if (err) throw res.status(403).json({
+                uid: null,
+                name: null,
+                email: null
+            })
+            res.status(200).json({
                 uid: decoded.uid,
                 email: decoded.email,
                 name: decoded.name
             });
         })
     } else {
-        res.json({
+        res.status(403).json({
             uid: null,
             name: null,
             email: null
@@ -149,7 +153,7 @@ router.post("/tokenLogin", cors(corsSettings), function (req, res, next) {
 router.options("/logout", cors(corsSettings))
 router.post("/logout", cors(corsSettings), function (req, res, next) {
     res.clearCookie("jwt");
-    res.json({
+    res.status(200).json({
         uid: null,
         email: null,
         name: null
