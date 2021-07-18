@@ -27,6 +27,9 @@ io.on("connection", function (socket) {
             //io.to(publicRoomId).emit("newCurrentStep", workoutStep);
         })
     })
+    socket.on("disconnect", (reason) => {
+        console.log(reason);
+    })
 
     socket.on("currentStepChanged", function (step) {
         io.to(publicRoomId).emit("newCurrentStep", step)
