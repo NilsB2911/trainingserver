@@ -25,7 +25,7 @@ io.on("connection", function (socket) {
                 res.json().then(finWo => {
                     io.to(publicRoomId).emit("newWorkoutSelected", finWo);
                 })
-            } else if(res.status === 404) {
+            } else if (res.status === 404) {
                 console.log("workout not found")
             }
         })
@@ -46,7 +46,10 @@ io.on("connection", function (socket) {
             get socket with id from userArray
          */
         for (let i = 0; i < userArray.length; i++) {
-            allUserNames.push(io.sockets.sockets.get(userArray[i]).nickname);
+            allUserNames.push({
+                nickname: io.sockets.sockets.get(userArray[i]).nickname,
+                userId: userArray[i]
+            });
         }
 
         io.to(publicRoomId).emit("newUsernames", allUserNames);
@@ -63,6 +66,10 @@ io.on("connection", function (socket) {
     socket.on("playing", function (playState) {
         io.to(publicRoomId).emit("newPlaying", playState)
     });
+
+    function getAllUser() {
+
+    }
 });
 
 http.listen(port, () => {
