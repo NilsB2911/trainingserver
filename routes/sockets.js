@@ -34,11 +34,17 @@ io.on("connection", function (socket) {
     socket.on("joinWithName", (name) => {
         socket.nickname = name;
 
+        /*
+            get all Ids from room
+         */
         let users = io.sockets.adapter.rooms.get(publicRoomId);
         let userArray = Array.from(users);
 
         let allUserNames = [];
 
+        /*
+            get socket with id from userArray
+         */
         for (let i = 0; i < userArray.length; i++) {
             allUserNames.push(io.sockets.sockets.get(userArray[i]).nickname);
         }
