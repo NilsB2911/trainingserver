@@ -32,6 +32,9 @@ io.on("connection", function (socket) {
     })
 
     socket.on("joinWithName", (name) => {
+        if(name === undefined) {
+            name = "anonymous"
+        }
         socket.nickname = name;
 
         /*
@@ -66,10 +69,6 @@ io.on("connection", function (socket) {
     socket.on("playing", function (playState) {
         io.to(publicRoomId).emit("newPlaying", playState)
     });
-
-    function getAllUser() {
-
-    }
 });
 
 http.listen(port, () => {
