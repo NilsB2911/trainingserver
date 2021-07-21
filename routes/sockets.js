@@ -71,7 +71,6 @@ io.on("connection", function (socket) {
     });
 
     socket.on("newMsg", (msgObject) => {
-        console.log(msgObject);
         io.to(publicRoomId).emit("newMsgToAppend", msgObject)
     })
 });
