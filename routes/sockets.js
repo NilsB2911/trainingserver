@@ -59,7 +59,7 @@ io.on("connection", function (socket) {
     })
 
     socket.on("disconnect", (reason) => {
-
+        console.log(socket.id);
     })
 
     socket.on("currentStepChanged", function (step) {
@@ -69,6 +69,11 @@ io.on("connection", function (socket) {
     socket.on("playing", function (playState) {
         io.to(publicRoomId).emit("newPlaying", playState)
     });
+
+    socket.on("newMsg", (msgObject) => {
+        console.log(msgObject);
+        io.to(publicRoomId).emit("newMsgToAppend", msgObject)
+    })
 });
 
 http.listen(port, () => {
