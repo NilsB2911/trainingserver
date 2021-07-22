@@ -24,11 +24,26 @@ var corsSettings = {
 var jwt = require('jsonwebtoken')
 const config = require('../config/config.json')
 
+
+var multer = require("multer");
+var multerStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, './pbs')
+    },
+    filename: function (req, file, cb) {
+        let extensionArray = file.mimetype.split("/")
+        let extension = extensionArray[extensionArray.length - 1]
+        cb(null, uuidv4() + "." + extension);
+    }
+})
+var upload = multer({storage: multerStorage})
+
+router.use(cors(corsSettings))
 /*
     checks id uuid exists
     returns true/false corresponding
- */
-router.get("/checkIfUidExists/:uid", cors(corsSettings), function (req, res, next) {
+
+router.get("/checkIfUidExists/:uid", function (req, res, next) {
     let queryString = "SELECT uid FROM `user` WHERE uid = " + addQuotation(req.params.uid);
     connection.query(queryString, (err, result) => {
         if (err) throw err;
@@ -38,19 +53,27 @@ router.get("/checkIfUidExists/:uid", cors(corsSettings), function (req, res, nex
             res.send(true);
         }
     })
-})
+})*/
 
 /*
     registers new user
     returns user object and jwt cookie
  */
-router.options("/register", cors(corsSettings));
-router.post("/register", cors(corsSettings), function (req, res, next) {
-    console.log(req.body);
+//router.options("/register", cors(corsSettings));
+
+router.post("/register", upload.single("pb"), function (req, res, next) {
 
     let email = req.body.email;
     let uid = uuidv4();
     let name = req.body.name;
+    let pbLink
+
+    if (req.file) {
+        pbLink = req.file.filename
+    } else {
+        pbLink = null
+    }
+
 
     let queryString = `SELECT \`email\` FROM \`user\` WHERE \`email\` = '${email}'`;
     connection.query(queryString, (err, resultOuter) => {
@@ -58,16 +81,15 @@ router.post("/register", cors(corsSettings), function (req, res, next) {
         if (resultOuter.length === 0) {
             bcrypt.hash(req.body.pw, 10, function (err, hash) {
                 if (err) throw err;
-                let queryString = `INSERT INTO \`user\`(\`email\`, \`pw\`, \`uid\`, \`name\`) VALUES ('${email}', '${hash}', '${uid}', '${name}')`
+                let queryString = `INSERT INTO \`user\`(\`email\`, \`pw\`, \`uid\`, \`name\`, \`pblink\`) VALUES ('${email}', '${hash}', '${uid}', '${name}', '${pbLink}')`
                 connection.query(queryString, (err, result) => {
                     if (err) throw err;
                     let token = jwt.sign({email: email, uid: uid, name: name}, config.secretKey)
-                    console.log(token)
                     res.cookie('jwt', token, {httpOnly: true})
                     res.status(200).json({
                         uid: uid,
                         email: email,
-                        name: name
+                        name: name,
                     })
                 })
             });
@@ -81,8 +103,8 @@ router.post("/register", cors(corsSettings), function (req, res, next) {
     logs user in
     returns user object and jwt cookie
  */
-router.options("/login", cors(corsSettings));
-router.post("/login", cors(corsSettings), function (req, res, next) {
+//router.options("/login", cors(corsSettings));
+router.post("/login", function (req, res, next) {
     let email = req.body.email;
     let pw = req.body.pw;
 
@@ -121,8 +143,7 @@ router.post("/login", cors(corsSettings), function (req, res, next) {
     logs user in based on jwt token
     returns user object
  */
-router.options("/tokenLogin", cors(corsSettings));
-router.post("/tokenLogin", cors(corsSettings), function (req, res, next) {
+router.post("/tokenLogin", function (req, res, next) {
     let jwToken = req.cookies.jwt;
     if (jwToken) {
         jwt.verify(jwToken, config.secretKey, (err, decoded) => {
@@ -150,8 +171,8 @@ router.post("/tokenLogin", cors(corsSettings), function (req, res, next) {
     logs user out
     returns jwt cookie clear
  */
-router.options("/logout", cors(corsSettings))
-router.post("/logout", cors(corsSettings), function (req, res, next) {
+//router.options("/logout", cors(corsSettings))
+router.post("/logout", function (req, res, next) {
     res.clearCookie("jwt");
     res.status(200).json({
         uid: null,
@@ -160,8 +181,25 @@ router.post("/logout", cors(corsSettings), function (req, res, next) {
     });
 })
 
-function addQuotation(str) {
-    return "'" + str + "'";
-}
+/*
+    returns user profile picture
+ */
+var path = require("path")
+router.get("/pb/:uid", function (req, res, next) {
+    let queryString = `SELECT \`pblink\` FROM \`user\` WHERE \`uid\` = '${req.params.uid}'`
+    connection.query(queryString, (err, result) => {
+        if (err) throw err;
+        if (result[0].pblink) {
+            res.status(200).json({
+                link: `http://localhost:3001/${result[0].pblink}`
+            });
+        } else {
+            res.status(200).json({
+                link: "http://localhost:3001/dummyPb.png"
+            });
+        }
+    })
+})
+
 
 module.exports = router;

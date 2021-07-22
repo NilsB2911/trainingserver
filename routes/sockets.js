@@ -31,11 +31,10 @@ io.on("connection", function (socket) {
         })
     })
 
-    socket.on("joinWithName", (name) => {
-        if(name === undefined) {
-            name = "anonymous"
-        }
-        socket.nickname = name;
+    socket.on("joinWithName", (userObj) => {
+
+        socket.nickname = userObj.name;
+        socket.pb = userObj.pb
 
         /*
             get all Ids from room
@@ -51,7 +50,8 @@ io.on("connection", function (socket) {
         for (let i = 0; i < userArray.length; i++) {
             allUserNames.push({
                 nickname: io.sockets.sockets.get(userArray[i]).nickname,
-                userId: userArray[i]
+                userId: userArray[i],
+                pb: io.sockets.sockets.get(userArray[i]).pb
             });
         }
 
@@ -59,7 +59,7 @@ io.on("connection", function (socket) {
     })
 
     socket.on("disconnect", (reason) => {
-        console.log(socket.id);
+        io.to(publicRoomId).emit("userDisconnected", socket.id);
     })
 
     socket.on("currentStepChanged", function (step) {

@@ -29,6 +29,8 @@ app.use('/training', trainingRouter);
 app.use('/user', usersRouter);
 app.use('/rooms', roomsRouter)
 
+
+app.use(express.static("pbs"))
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
