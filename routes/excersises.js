@@ -19,11 +19,13 @@ var corsSettings = {
 
 const {v4: uuidv4} = require('uuid');
 
+router.use(cors(corsSettings))
+
 /*
     get all workouts from a specific user
     returns all workouts
  */
-router.get('/get/:userId', cors(corsSettings), function (req, res, next) {
+router.get('/get/:userId', function (req, res, next) {
 
     let id = req.params.userId;
     let query = `SELECT * FROM \`trainingtest\` WHERE \`userId\` = '${id}'`
@@ -40,7 +42,7 @@ router.get('/get/:userId', cors(corsSettings), function (req, res, next) {
     get workout to populate edit page
     returns specific workout
  */
-router.get("/edit/:tid/:uid", cors(corsSettings), function (req, res, next) {
+router.get("/edit/:tid/:uid", function (req, res, next) {
     let tid = req.params.tid;
     let uid = req.params.uid;
 
@@ -58,8 +60,8 @@ router.get("/edit/:tid/:uid", cors(corsSettings), function (req, res, next) {
     updates existing workout
     returns true if updated successfully
  */
-router.options("/update", cors(corsSettings))
-router.put("/update", cors(corsSettings), function (req, res, next) {
+//router.options("/update", cors(corsSettings))
+router.put("/update", function (req, res, next) {
 
     let name = req.body.name;
     let json = req.body.json;
@@ -78,8 +80,8 @@ router.put("/update", cors(corsSettings), function (req, res, next) {
     creates new workout
     returns true if created successfully
  */
-router.options("/submit", cors(corsSettings));
-router.post("/submit", cors(corsSettings), function (req, res, next) {
+//router.options("/submit", cors(corsSettings));
+router.post("/submit", function (req, res, next) {
 
     let name = req.body.name;
     let json = req.body.json;
@@ -98,16 +100,12 @@ router.post("/submit", cors(corsSettings), function (req, res, next) {
     deletes existing workout
     returns all remaining workouts
  */
-router.options("/deleteWorkout", cors());
-router.delete("/deleteWorkout", cors(corsSettings), function (req, res, next) {
+//router.options("/deleteWorkout", cors(corsSettings));
+router.delete("/deleteWorkout", function (req, res, next) {
     let query = `DELETE FROM \`trainingtest\` WHERE \`tid\` = '${req.body.tid}' AND \`userId\` = '${req.body.uid}'`
     connection.query(query, (err, resultIrrelevant) => {
-        if (err) throw err;
-        let responseQuery = `SELECT * FROM \`trainingtest\` WHERE \`userId\` = '${req.body.uid}'`
-        connection.query(responseQuery, (err, resultRemainingWos) => {
-            if (err) throw res.sendStatus(409);
-            res.status(204).send(resultRemainingWos);
-        })
+        if (err) throw res.status(409);
+        res.sendStatus(204)
     })
 })
 

@@ -184,19 +184,19 @@ router.post("/logout", function (req, res, next) {
 /*
     returns user profile picture
  */
-var path = require("path")
 router.get("/pb/:uid", function (req, res, next) {
+
     let queryString = `SELECT \`pblink\` FROM \`user\` WHERE \`uid\` = '${req.params.uid}'`
     connection.query(queryString, (err, result) => {
         if (err) throw err;
-        if (result[0].pblink) {
+        if (result[0].pblink !== "null") {
             res.status(200).json({
                 link: `http://localhost:3001/${result[0].pblink}`
             });
         } else {
             res.status(200).json({
                 link: "http://localhost:3001/dummyPb.png"
-            });
+            })
         }
     })
 })
